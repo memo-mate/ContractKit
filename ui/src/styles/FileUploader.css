@@ -1,0 +1,61 @@
+.file-uploader {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+/* 当在主界面显示时的样式 */
+.top-section .file-uploader {
+  background-color: #f0f5fa;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.top-section .file-uploader h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 当在主界面显示时的上传容器样式 */
+.top-section .upload-container {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #e8f4fd;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+/* 当在主界面显示时的已选择文件样式 */
+.top-section .selected-file {
+  background-color: transparent;
+  padding: 0;
+  flex: 1;
+}
+
+.upload-error {
+  margin-top: 10px;
+}
+
+/* 当在主界面显示时的错误信息样式 */
+.top-section .upload-error {
+  margin-top: 0;
+  margin-left: 10px;
+} 
+

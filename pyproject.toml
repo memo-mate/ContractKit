@@ -1,0 +1,47 @@
+[project]
+name = "contractgen"
+version = "0.1.0"
+description = "Contract review and genarate..."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bayoo-docx>=0.2.20",
+    "gradio>=5.29.0",
+    "llama-index==0.12.30",
+    "llama-index-agent-openai==0.4.6",
+    "llama-index-cli==0.4.1",
+    "llama-index-core==0.12.30",
+    "llama-index-llms-dashscope==0.3.2",
+    "llama-index-llms-openai==0.3.33",
+    "llama-index-llms-openai-like==0.3.4",
+    "llama-index-llms-openrouter==0.3.1",
+    "llama-index-multi-modal-llms-openai==0.4.3",
+    "llama-index-program-openai==0.3.1",
+    "llama-index-question-gen-openai==0.3.0",
+    "llama-index-readers-file==0.4.7",
+    "llama-index-readers-llama-parse==0.4.0",
+    "llama-index-tools-duckduckgo==0.3.0",
+    "llama-index-utils-workflow==0.3.1",
+    "loguru>=0.7.3",
+    "mammoth>=1.9.0",
+    "pip>=25.1.1",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.26.0",
+    "python-docx>=1.1.2",
+    "types-requests>=2.32.0.20250515",
+]
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+
+
+[tool.ruff]
+target-version = "py312"
+exclude = ["alembic", "scripts"]
+line-length = 120
+
+[tool.pytest]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "function"
