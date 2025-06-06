@@ -150,7 +150,7 @@ class ReviewerAgent(Workflow):
         self.memory = ChatMemoryBuffer.from_defaults(llm=self.llm, chat_history=chat_history)
 
     @step
-    async def split_contract(self, cxt: Context, event: InputEvent) -> ContractPartEvent:
+    async def split_contract(self, cxt: Context, event: InputEvent) -> ContractPartEvent:  # type: ignore
         """Split the contract and classify the parts"""
         contract_content = event.all_id_text
         contents = event.contents

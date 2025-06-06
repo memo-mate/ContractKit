@@ -3,15 +3,14 @@ from typing import Any, Literal
 from docx.shared import RGBColor
 from llama_index.core.llms import LLM
 
-from prepocess.template_convert import InputEvent
-from workflow.reviewer import ContractAnalysis, ReviewerAgent
+from workflow.reviewer import ContractAnalysis, ReviewerAgent, InputEvent
 from workflow.utils import Content, get_contents
 
 
 class ReviewController:
     def __init__(
         self,
-        llm: LLM = None,
+        llm: LLM | None = None,
         summary: bool = False,
         author: str = "XiaoXi Reviewer",
         initials: str = "XR",
