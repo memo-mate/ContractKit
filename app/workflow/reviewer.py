@@ -1,5 +1,6 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Literal
 
+from docx.document import Document
 from llama_index.core.bridge.pydantic import BaseModel, Field
 from llama_index.core.llms import LLM, ChatMessage
 from llama_index.core.memory import ChatMemoryBuffer
@@ -10,11 +11,12 @@ from llama_index.core.workflow import (
     Context,
     Event,
     StopEvent,
+    StartEvent,
     Workflow,
     step,
 )
 
-from prepocess.template_convert import InputEvent
+from workflow.utils import Content
 from prompts.review import (
     contract_classify_prompt,
     contract_review_map,
@@ -22,6 +24,17 @@ from prompts.review import (
     default_review_prompt,
 )
 
+class InputEvent(StartEvent):
+    contents: List[Content] = Field(default_factory=list, description="The contents to fill")
+    document: Document | None = Field(default=None, description="The document to fill", exclude=True)
+
+    @property
+    def all_text(self) -> str:
+        return "\n".join([content.content for content in self.contents])
+    
+    @property
+    def all_id_text(self) -> str:
+        return "\n".join([f"Content {content.id}: {content.content}" for content in self.contents])
 
 class Issue(BaseModel):
     id: int = Field(
@@ -29,7 +42,9 @@ class Issue(BaseModel):
     )
     content: str = Field(description="The original contract content corresponding to the issue.")
     description: str = Field(description="Description of the issue")
-    severity: str = Field(description="Severity of the issue, which can only be one of low, medium, or high.")
+    severity: Literal["low", "medium", "high"] = Field(
+        description="Severity of the issue, which can only be one of low, medium, or high."
+    )
     recommendation: str = Field(description="Recommendation of the issue")
 
 
@@ -39,7 +54,7 @@ class ResultIssue(Issue):
 
 
 class IssueList(BaseModel):
-    issues: List[Issue] = Field(description="Issues of the contract")
+    issues: List[Issue | ResultIssue] = Field(description="Issues of the contract")
 
 
 class SummaryIssues(BaseModel):
@@ -173,9 +188,9 @@ class ReviewerAgent(Workflow):
             schema=IssueList.model_json_schema(mode="serialization"),
         )
 
-        issues = IssueList.model_validate_json(issues)
-        result_issues = []
-        for issue in issues.issues:
+        issues_obj = IssueList.model_validate_json(issues)
+        result_issues: List[ResultIssue] = []
+        for issue in issues_obj.issues:
             # add startPosition and endPosition to the issue
             result_issues.append(
                 ResultIssue(
@@ -184,43 +199,43 @@ class ReviewerAgent(Workflow):
                     part_end_id=event.part.end_id,
                 )
             )
-        result_issues = IssueList(issues=result_issues)
-        data = result_issues.model_dump()
+        issues_list = IssueList(issues=result_issues)  # type: ignore[arg-type]
+        data = issues_list.model_dump()
         data["part_text"] = event.part_text
         cxt.write_event_to_stream(StreamEvent(name=self.name, msg="Reviewing", data=data))
         if self._verbose:
-            print("Reviewing issue: ", issues.model_dump_json())
-        return IssueEvent(issue_list=result_issues, part_text=event.part_text)
+            print("Reviewing issue: ", issues_obj.model_dump_json())
+        return IssueEvent(issue_list=issues_list)
 
     @step
     async def summary_issues(self, cxt: Context, event: IssueEvent) -> StopEvent:
         """Summary the issues."""
 
         event_num = await cxt.get("event_num")
-        results: List[IssueEvent] | None = cxt.collect_events(event, [IssueEvent] * event_num)
+        results: List[IssueEvent] | None = cxt.collect_events(event, [IssueEvent] * event_num) # type: ignore
         # wait for all the contract parts to be reviewed
         if results is None:
-            return None
+            return None  # type: ignore
 
         issues: List[ResultIssue] = []
         for result in results:
-            issues.extend(result.issue_list.issues)
-        issue_lst = IssueList(issues=issues)
+            issues.extend(result.issue_list.issues) # type: ignore[arg-type]
+        issue_lst = IssueList(issues=issues) # type: ignore[arg-type]
         if self.summary:
             summary = await self.llm.apredict(
                 self.summary_issues_prompt,
                 issues=issue_lst.model_dump_json(exclude={"issues.startPosition", "issues.endPosition", "issues.id"}),
                 schema=SummaryIssues.model_json_schema(),
             )
-            summary = SummaryIssues.model_validate_json(summary)
+            summary_issues = SummaryIssues.model_validate_json(summary)
             if self._verbose:
-                print("Summary: ", summary.summary)
+                print("Summary: ", summary_issues.summary)
             cxt.write_event_to_stream(
-                StreamEvent(name=self.name, msg="Summary", data=summary.model_dump_json(indent=4))
+                StreamEvent(name=self.name, msg="Summary", data=summary_issues.model_dump_json(indent=4))
             )
             return StopEvent(
                 result=ContractAnalysis(
-                    issues=issues, summary=summary.summary, riskLevel=summary.riskLevel, score=summary.score
+                    issues=issues, summary=summary_issues.summary, riskLevel=summary_issues.riskLevel, score=summary_issues.score
                 )
             )
         else:
