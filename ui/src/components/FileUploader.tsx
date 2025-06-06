@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
-import { Button, CircularProgress, Typography, Box, Alert } from '@mui/material';
-import '../styles/FileUploader.css';
+import React, { useState } from "react";
+import {
+  Button,
+  CircularProgress,
+  Typography,
+  Box,
+  Alert,
+} from "@mui/material";
+import "../styles/FileUploader.css";
 
 interface FileUploaderProps {
   onFileUpload: (file: File) => Promise<void>;
@@ -9,11 +15,11 @@ interface FileUploaderProps {
   isCompact?: boolean; // 是否使用紧凑模式 (当在主界面显示时)
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({ 
-  onFileUpload, 
-  isLoading, 
+const FileUploader: React.FC<FileUploaderProps> = ({
+  onFileUpload,
+  isLoading,
   error,
-  isCompact = false 
+  isCompact = false,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -29,8 +35,10 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       await onFileUpload(selectedFile);
       setSelectedFile(null);
       // 重置input以便重新选择相同文件
-      const fileInput = document.getElementById('contract-file-input') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      const fileInput = document.getElementById(
+        "contract-file-input",
+      ) as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
     }
   };
 
@@ -39,19 +47,20 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       <Typography variant="h6" component="h3" gutterBottom={!isCompact}>
         上传合同文档
       </Typography>
-      
+
       <Box className="upload-container">
         <input
           accept=".doc,.docx"
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
           id="contract-file-input"
           type="file"
           onChange={handleFileChange}
           disabled={isLoading}
         />
+
         <label htmlFor="contract-file-input">
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             component="span"
             disabled={isLoading}
             size={isCompact ? "small" : "medium"}
@@ -59,25 +68,29 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             选择文件
           </Button>
         </label>
-        
+
         {selectedFile && (
           <Box className="selected-file">
             <Typography variant="body2" component="span">
               已选择: {selectedFile.name}
             </Typography>
-            <Button 
-              variant="contained" 
-              color="primary" 
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleUpload}
               disabled={isLoading}
               size={isCompact ? "small" : "medium"}
             >
-              {isLoading ? <CircularProgress size={isCompact ? 18 : 24} /> : "上传文件"}
+              {isLoading ? (
+                <CircularProgress size={isCompact ? 18 : 24} />
+              ) : (
+                "上传文件"
+              )}
             </Button>
           </Box>
         )}
       </Box>
-      
+
       {error && (
         <Alert severity="error" className="upload-error">
           {error}

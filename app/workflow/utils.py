@@ -162,7 +162,7 @@ def cell_paragraphs_merge(cell: _Cell) -> Paragraph:
         cell (_Cell): The cell to merge paragraphs in.
 
     Returns:
-        Optional[_Paragraph]: The merged paragraph, or None if there are no paragraphs.
+        Paragraph: The merged paragraph.
     """
     paragraphs = cell.paragraphs
     if len(paragraphs) == 0:

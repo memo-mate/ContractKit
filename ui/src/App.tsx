@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import AnalysisPanel from './components/AnalysisPanel';
-import ContractPanel from './components/ContractPanel';
-import FileUploader from './components/FileUploader';
-import { Contract, ContractAnalysis, ContractIssue } from './types';
-import { uploadContractFile } from './services/api';
-import { processAnalysisIssues } from './utils/analysis';
-import './styles/index.css';
+import React, { useState } from "react";
+import AnalysisPanel from "./components/AnalysisPanel";
+import ContractPanel from "./components/ContractPanel";
+import FileUploader from "./components/FileUploader";
+import { Contract, ContractAnalysis, ContractIssue } from "./types";
+import { uploadContractFile } from "./services/api";
+import { processAnalysisIssues } from "./utils/analysis";
+import "./styles/index.css";
 
 // 示例数据 - 实际应用中这些数据会从API获取
 const sampleContract: Contract = {
-  id: 'contract-001',
-  name: '房屋租赁合同',
+  id: "contract-001",
+  name: "房屋租赁合同",
   content: `甲方（出租方）：张三
 联系方式：13800138000
 地址：北京市朝阳区某某路1号
@@ -116,85 +116,94 @@ const sampleContract: Contract = {
 
 甲方（签章）：                     乙方（签章）：
 日期：                           日期：`,
-  dateUploaded: '2023-06-15',
+  dateUploaded: "2023-06-15",
 };
 
 // 重新计算和验证每个问题的位置
 const contractContent = sampleContract.content;
 
 // 精确定位问题位置
-const findTextPosition = (text: string): {start: number, end: number} => {
+const findTextPosition = (text: string): { start: number; end: number } => {
   const start = contractContent.indexOf(text);
-  return { 
-    start: start, 
-    end: start + text.length 
+  return {
+    start: start,
+    end: start + text.length,
   };
 };
 
 // 租期问题
-const issue1Pos = findTextPosition('租赁期限自2023年7月1日起至2025年6月30日止');
+const issue1Pos = findTextPosition("租赁期限自2023年7月1日起至2025年6月30日止");
 // 保证金问题
-const issue2Pos = findTextPosition('保证金人民币壹万元整（¥10,000.00）');
+const issue2Pos = findTextPosition("保证金人民币壹万元整（¥10,000.00）");
 // 违约金问题
-const issue3Pos = findTextPosition('乙方逾期支付租金超过十日，甲方有权要求乙方按日支付应付租金的0.1%作为违约金');
+const issue3Pos = findTextPosition(
+  "乙方逾期支付租金超过十日，甲方有权要求乙方按日支付应付租金的0.1%作为违约金",
+);
 // 转租问题
-const issue4Pos = findTextPosition('乙方擅自将房屋转租给第三方，甲方有权解除合同并没收保证金');
+const issue4Pos = findTextPosition(
+  "乙方擅自将房屋转租给第三方，甲方有权解除合同并没收保证金",
+);
 // 争议解决问题
-const issue5Pos = findTextPosition('本合同项下发生的争议，由甲乙双方协商解决；协商不成的，可向房屋所在地人民法院提起诉讼');
+const issue5Pos = findTextPosition(
+  "本合同项下发生的争议，由甲乙双方协商解决；协商不成的，可向房屋所在地人民法院提起诉讼",
+);
 
 const sampleIssues: ContractIssue[] = [
   {
-    id: 'issue-001',
+    id: "issue-001",
     startPosition: issue1Pos.start,
     endPosition: issue1Pos.end,
-    content: '租赁期限自2023年7月1日起至2025年6月30日止',
-    description: '合同期限过长，建议不超过12个月，以便灵活调整条款',
-    severity: 'medium',
-    recommendation: '建议修改为12个月租期，并添加优先续租条款'
+    content: "租赁期限自2023年7月1日起至2025年6月30日止",
+    description: "合同期限过长，建议不超过12个月，以便灵活调整条款",
+    severity: "medium",
+    recommendation: "建议修改为12个月租期，并添加优先续租条款",
   },
   {
-    id: 'issue-002',
+    id: "issue-002",
     startPosition: issue2Pos.start,
     endPosition: issue2Pos.end,
-    content: '保证金人民币壹万元整（¥10,000.00）',
-    description: '保证金金额过高，超过两个月租金，存在法律风险',
-    severity: 'high',
-    recommendation: '建议降低保证金金额，不超过两个月租金'
+    content: "保证金人民币壹万元整（¥10,000.00）",
+    description: "保证金金额过高，超过两个月租金，存在法律风险",
+    severity: "high",
+    recommendation: "建议降低保证金金额，不超过两个月租金",
   },
   {
-    id: 'issue-003',
+    id: "issue-003",
     startPosition: issue3Pos.start,
     endPosition: issue3Pos.end,
-    content: '乙方逾期支付租金超过十日，甲方有权要求乙方按日支付应付租金的0.1%作为违约金',
-    description: '违约金比例设置不合理，可能被认定为无效条款',
-    severity: 'high',
-    recommendation: '建议将违约金调整为更合理的比例，如每日万分之三'
+    content:
+      "乙方逾期支付租金超过十日，甲方有权要求乙方按日支付应付租金的0.1%作为违约金",
+    description: "违约金比例设置不合理，可能被认定为无效条款",
+    severity: "high",
+    recommendation: "建议将违约金调整为更合理的比例，如每日万分之三",
   },
   {
-    id: 'issue-004',
+    id: "issue-004",
     startPosition: issue4Pos.start,
     endPosition: issue4Pos.end,
-    content: '乙方擅自将房屋转租给第三方，甲方有权解除合同并没收保证金',
-    description: '直接没收全部保证金的条款过于严苛，可能被认定为无效',
-    severity: 'medium',
-    recommendation: '建议修改为"有权解除合同并要求赔偿实际损失"'
+    content: "乙方擅自将房屋转租给第三方，甲方有权解除合同并没收保证金",
+    description: "直接没收全部保证金的条款过于严苛，可能被认定为无效",
+    severity: "medium",
+    recommendation: '建议修改为"有权解除合同并要求赔偿实际损失"',
   },
   {
-    id: 'issue-005',
+    id: "issue-005",
     startPosition: issue5Pos.start,
     endPosition: issue5Pos.end,
-    content: '本合同项下发生的争议，由甲乙双方协商解决；协商不成的，可向房屋所在地人民法院提起诉讼',
-    description: '争议解决方式缺少仲裁选项，不利于快速解决纠纷',
-    severity: 'low',
-    recommendation: '建议增加仲裁选项，如"或提交至XX仲裁委员会仲裁"'
-  }
+    content:
+      "本合同项下发生的争议，由甲乙双方协商解决；协商不成的，可向房屋所在地人民法院提起诉讼",
+    description: "争议解决方式缺少仲裁选项，不利于快速解决纠纷",
+    severity: "low",
+    recommendation: '建议增加仲裁选项，如"或提交至XX仲裁委员会仲裁"',
+  },
 ];
 
 const sampleAnalysis: ContractAnalysis = {
   issues: sampleIssues,
-  summary: '本合同整体结构完整，但存在几处法律风险点，主要集中在保证金金额、违约责任条款及租期设置方面。建议对标记的高风险条款进行修改，以降低合同纠纷风险。',
-  riskLevel: 'medium',
-  score: 72
+  summary:
+    "本合同整体结构完整，但存在几处法律风险点，主要集中在保证金金额、违约责任条款及租期设置方面。建议对标记的高风险条款进行修改，以降低合同纠纷风险。",
+  riskLevel: "medium",
+  score: 72,
 };
 
 const App: React.FC = () => {
@@ -208,17 +217,22 @@ const App: React.FC = () => {
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
     setUploadError(null);
-    
+
     try {
       const result = await uploadContractFile(file);
       setContract(result.contract);
       // 处理分析结果，添加缺失的位置信息
-      const processedAnalysis = processAnalysisIssues(result.analysis, result.contract.content);
+      const processedAnalysis = processAnalysisIssues(
+        result.analysis,
+        result.contract.content,
+      );
       setAnalysis(processedAnalysis);
       setSelectedIssue(null);
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : '上传失败，请稍后重试');
-      console.error('文件上传失败:', error);
+      setUploadError(
+        error instanceof Error ? error.message : "上传失败，请稍后重试",
+      );
+      console.error("文件上传失败:", error);
     } finally {
       setIsLoading(false);
     }
@@ -235,15 +249,18 @@ const App: React.FC = () => {
       <div className="app-container upload-only">
         <div className="welcome-header">
           <h1>合同法律风险分析系统</h1>
-          <p>上传Word文档格式的合同，系统将自动分析合同中的法律风险点并提供修改建议。</p>
+          <p>
+            上传Word文档格式的合同，系统将自动分析合同中的法律风险点并提供修改建议。
+          </p>
         </div>
-        <FileUploader 
+        <FileUploader
           onFileUpload={handleFileUpload}
           isLoading={isLoading}
           error={uploadError}
         />
+
         {/* 添加示例数据按钮，方便测试 */}
-        <button 
+        <button
           className="load-sample-btn"
           onClick={() => {
             setContract(sampleContract);
@@ -259,7 +276,7 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <div className="top-section">
-        <FileUploader 
+        <FileUploader
           onFileUpload={handleFileUpload}
           isLoading={isLoading}
           error={uploadError}
@@ -272,6 +289,7 @@ const App: React.FC = () => {
           selectedIssue={selectedIssue}
           onIssueSelect={handleIssueSelect}
         />
+
         <ContractPanel
           contract={contract}
           issues={analysis.issues}
